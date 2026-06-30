@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para Maria Eduarda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ffffff;
+    --white:#ffffff;
+    --red-pastel:#e7b3b1;
+    --red-deep:#c98987;
+    --red-ink:#b56664;
+    --red-line:#f2dddc;
+    --ink:#262220;
+    --ink-soft:#85807d;
+    --shadow: 0 18px 40px -28px rgba(0,0,0,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:#ffffff;
+    font-family:'Cormorant Garamond', serif;
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow-x:hidden;
+  }
+  /* ---------- ENVELOPE ---------- */
+  #envelope-screen{
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:#ffffff;
+    z-index:50;
+    transition: opacity .7s ease, visibility .7s ease;
+  }
+  #envelope-screen.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+  .envelope{
+    width:min(70vw,300px);
+    aspect-ratio: 3/2;
+    position:relative;
+    cursor:pointer;
+  }
+  .env-back{
+    position:absolute; inset:0;
+    background:var(--white);
+    border:1px solid var(--red-line);
+    border-radius:2px;
+    box-shadow:var(--shadow);
+  }
+  .env-flap{
+    position:absolute; top:0; left:0; width:100%; height:55%;
+    background:var(--white);
+    border:1px solid var(--red-line);
+    border-bottom:none;
+    clip-path: polygon(0 0, 100% 0, 50% 85%);
+    transform-origin: top center;
+    transition: transform .8s cubic-bezier(.6,0,.3,1);
+    z-index:3;
+  }
+  .envelope.open .env-flap{ transform: rotateX(180deg); }
+  .env-fold-l, .env-fold-r{ display:none; }
+  .env-seal{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:34px; height:34px; border-radius:50%;
+    background:var(--white);
+    border:1px solid var(--red-deep);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--red-deep); font-family:'Playfair Display', serif; font-style:italic;
+    font-size:15px;
+    z-index:4;
+  }
+  .env-letter-peek{
+    position:absolute; left:8%; bottom:6%; width:84%; height:40%;
+    background:var(--paper);
+    border:1px solid var(--red-line);
+    border-radius:2px;
+    transform: translateY(0);
+    transition: transform .8s cubic-bezier(.6,0,.3,1) .1s;
+    z-index:2;
+  }
+  .envelope.open .env-letter-peek{ transform: translateY(-150%); }
+  .envelope-hint{
+    position:absolute; bottom:-40px; left:0; right:0; text-align:center;
+    font-size:13px; letter-spacing:.18em; color:var(--ink-soft);
+    text-transform:uppercase; font-family:'Cormorant Garamond',serif;
+  }
+
+  /* ---------- BOOK ---------- */
+  #book-wrap{
+    width:100%;
+    display:flex; flex-direction:column; align-items:center;
+    padding: 28px 16px 40px;
+  }
+  .book{
+    position:relative;
+    width:min(92vw, 440px);
+    height:min(78vh, 620px);
+    background:var(--white);
+    border-radius:2px;
+    overflow:hidden;
+    border:1px solid var(--red-line);
+  }
+  .page{
+    position:absolute; inset:0;
+    padding:46px 36px 34px;
+    display:flex; flex-direction:column;
+    opacity:0; visibility:hidden;
+    transform: translateX(16px);
+    transition: opacity .5s ease, transform .5s ease;
+    overflow-y:auto;
+  }
+  .page.active{ opacity:1; visibility:visible; transform:translateX(0); }
+  .page::before{ content:none; }
+  .eyebrow{
+    font-family:'Cormorant Garamond',serif;
+    text-transform:uppercase; letter-spacing:.22em; font-size:11.5px;
+    color:var(--red-ink); font-weight:600; margin-bottom:14px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--red-line);
+  }
+  .headline{
+    font-family:'Playfair Display', serif;
+    font-style:italic; font-weight:500;
+    font-size:clamp(24px,5.6vw,30px);
+    line-height:1.2;
+    color:var(--ink);
+    margin:0 0 18px;
+  }
+  .headline em{ color:var(--red-ink); font-style:italic; font-weight:600; }
+  .body-text{
+    font-size:18px; line-height:1.65; color:var(--ink-soft);
+    margin:0 0 14px;
+  }
+  .photo-frame{
+    align-self:center;
+    width:62%;
+    margin: 4px 0 18px;
+    background:#fff;
+  }
+  .page:nth-of-type(odd) .photo-frame{ transform:none; }
+  .photo-frame img{ width:100%; display:block; }
+  .photo-cap{
+    text-align:center; font-family:'Cormorant Garamond',serif; font-style:italic;
+    font-size:13px; color:var(--ink-soft); margin-top:8px;
+  }
+  .page-num{
+    position:absolute; bottom:16px; left:0; right:0; text-align:center;
+    font-size:11px; letter-spacing:.18em; color:#d8c2c0;
+  }
+  .closing-sig{
+    margin-top:auto;
+    font-family:'Playfair Display',serif; font-style:italic;
+    font-size:19px; color:var(--red-ink);
+    align-self:flex-end;
+    padding-top:14px;
+    border-top:1px solid var(--red-line);
+  }
+
+  /* nav */
+  .controls{
+    display:flex; align-items:center; gap:22px;
+    margin-top:20px;
+  }
+  .nav-btn{
+    width:36px; height:36px; border-radius:50%;
+    border:1px solid var(--red-line);
+    background:var(--white);
+    color:var(--red-ink);
+    font-size:17px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition: border-color .25s ease, color .25s ease;
+  }
+  .nav-btn:hover{ border-color:var(--red-ink); }
+  .nav-btn:disabled{ opacity:.25; cursor:default; }
+  .nav-btn:disabled:hover{ border-color:var(--red-line); }
+  .dots{ display:flex; gap:8px; }
+  .dot{ width:5px; height:5px; border-radius:50%; background:var(--red-line); transition:background .25s ease;}
+  .dot.active{ background:var(--red-ink); }
+
+  .secret-trigger{
+    align-self:flex-end;
+    margin-top:10px;
+    background:none; border:none;
+    color:var(--red-line);
+    font-size:14px;
+    cursor:pointer;
+    transition: color .4s ease, transform .3s ease;
+    padding:4px;
+  }
+  .secret-trigger:hover{ color:var(--red-ink); transform:scale(1.15); }
+
+  .poem-text{
+    font-family:'Playfair Display', serif;
+    font-style:italic;
+    font-size:19px;
+    line-height:1.9;
+    color:var(--ink);
+  }
+
+  .headline.typing::after{
+    content:'';
+    display:inline-block;
+    width:1px; height:0.9em;
+    background:var(--red-ink);
+    margin-left:3px;
+    vertical-align:-0.1em;
+    animation: blink 0.9s steps(1) infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .petal{
+    position:fixed;
+    top:-20px;
+    font-size:14px;
+    color:var(--red-deep);
+    opacity:.7;
+    pointer-events:none;
+    z-index:60;
+    animation: fall linear forwards;
+  }
+  @keyframes fall{
+    to{ transform: translateY(110vh) translateX(var(--drift,0px)) rotate(180deg); opacity:0; }
+  }
+
+  @media (max-width:380px){
+    .page{ padding:34px 24px 28px; }
+    .photo-frame{ width:72%; }
+  }
+</style>
+</head>
+<body>
+
+<div id="envelope-screen">
+  <div>
+    <div class="envelope" id="envelope">
+      <div class="env-letter-peek"></div>
+      <div class="env-back"></div>
+      <div class="env-fold-l"></div>
+      <div class="env-fold-r"></div>
+      <div class="env-flap"></div>
+      <div class="env-seal">D</div>
+      <div class="envelope-hint">toque para abrir</div>
+    </div>
+  </div>
+</div>
+
+<div id="book-wrap">
+  <div class="book" id="book">
+
+    <div class="page active">
+      <div class="eyebrow">Carta nº 01 — abertura</div>
+      <h1 class="headline">Para a <em>Doutora</em> mais bonita que eu conheço,</h1>
+      <p class="body-text">Não é fácil colocar você em palavras — você é maior do que qualquer página. Mas resolvi tentar, mesmo assim, porque é isso que se faz com quem se ama: tenta, insiste, escreve de novo.</p>
+      <p class="body-text">Esta é uma cartinha com várias páginas. Vire devagar.</p>
+      <div class="page-num">1</div>
+    </div>
+
+    <div class="page">
+      <div class="eyebrow">Carta nº 02 — a mente</div>
+      <h2 class="headline">Inteligência que <em>não pede licença</em></h2>
+      <div class="photo-frame">
+        <img src="img/formatura.jpg" alt="Maria Eduarda na formatura de Direito">
+        <div class="photo-cap">o dia em que o mundo viu o que eu já sabia</div>
+      </div>
+      <p class="body-text">Direito, beca, capelo e aquele sorriso de quem conquistou cada linha do diploma sozinha. Você estuda, argumenta, defende — e faz tudo isso com uma cabeça que eu admiro profundamente.</p>
+      <div class="page-num">2</div>
+    </div>
+
+    <div class="page">
+      <div class="eyebrow">Carta nº 03 — a leveza</div>
+      <h2 class="headline">Um sorriso que <em>vira a maré</em></h2>
+      <div class="photo-frame">
+        <img src="img/praia.jpg" alt="Maria Eduarda na praia, sorrindo">
+        <div class="photo-cap">mar de um lado, você do outro — e eu sem saber pra onde olhar</div>
+      </div>
+      <p class="body-text">Tem gente que ilumina foto. Você ilumina o lugar inteiro. Mesmo de longe, esse seu jeito leve de existir atravessa qualquer distância e chega até mim.</p>
+      <div class="page-num">3</div>
+    </div>
+
+    <div class="page">
+      <div class="eyebrow">Carta nº 04 — a presença</div>
+      <h2 class="headline">Elegância que é <em>jeito de ser</em></h2>
+      <div class="photo-frame">
+        <img src="img/vestido.jpg" alt="Maria Eduarda de vestido">
+        <div class="photo-cap">simples assim, e ainda a coisa mais bonita do quarteirão</div>
+      </div>
+      <p class="body-text">Você não precisa de esforço pra ser linda — é só você sendo você mesma, e o mundo ao redor parece se ajeitar. Tem cuidado em cada detalhe seu, e isso também é uma forma de inteligência.</p>
+      <div class="page-num">4</div>
+    </div>
+
+    <div class="page">
+      <div class="eyebrow">Carta nº 05 — o brilho</div>
+      <h2 class="headline">Alegria de <em>chapéu e tudo</em></h2>
+      <div class="photo-frame">
+        <img src="img/chapeu.jpg" alt="Maria Eduarda sorrindo com chapéu">
+        <div class="photo-cap">e mesmo de olhos fechados, dá pra ver a felicidade</div>
+      </div>
+      <p class="body-text">Seu jeito de brincar, de se divertir com as coisas pequenas — isso é raro. Você leva leveza pra onde vai, e quem está por perto sai sempre um pouco mais feliz.</p>
+      <div class="page-num">5</div>
+    </div>
+
+    <div class="page">
+      <div class="eyebrow">Carta nº 06 — a força</div>
+      <h2 class="headline">Distância que vira <em>prova de amor</em></h2>
+      <p class="body-text">Quilômetros não são páginas em branco — são páginas que a gente escreve juntos, mesmo separados. Sua paciência, sua constância, sua fé em nós: isso é uma força que poucas pessoas têm.</p>
+      <p class="body-text">Cada "bom dia" seu atravessa estados inteiros pra chegar até mim. E chega sempre intacto.</p>
+      <div class="page-num">6</div>
+    </div>
+
+    <div class="page">
+      <div class="eyebrow">Carta nº 07 — fechamento</div>
+      <h2 class="headline">No fim, é só <em>isso</em>:</h2>
+      <p class="body-text">Inteligente, bonita, leve, forte, presente mesmo de longe. Eu poderia escrever mais cem páginas e ainda assim não chegaria perto do tanto que você merece ser exaltada.</p>
+      <p class="body-text">Falta pouco pra esse "longe" virar "perto" pra sempre.</p>
+      <div class="closing-sig">— Yann</div>
+      <button class="secret-trigger" id="secretTrigger" aria-label="abrir página secreta">♡</button>
+      <div class="page-num">7</div>
+    </div>
+
+    <div class="page" id="secretPage">
+      <div class="eyebrow">Carta nº 08 — só pra você</div>
+      <h2 class="headline">Você <em>achou</em> a página escondida</h2>
+      <p class="body-text poem-text">és o sul que falta à minha bússola,<br>
+      o porto que invento quando o mar demora.<br>
+      se a distância é página em branco,<br>
+      eu escrevo teu nome até virar costa.<br>
+      e mesmo quando a noite esquece de mim,<br>
+      alguma parte minha já chegou aí.</p>
+      <p class="body-text" style="margin-top:18px;">— Yann, pra Duda</p>
+      <div class="page-num">8</div>
+    </div>
+
+  </div>
+
+  <div class="controls">
+    <button class="nav-btn" id="prevBtn" aria-label="página anterior">‹</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn" id="nextBtn" aria-label="próxima página">›</button>
+  </div>
+</div>
+
+<script>
+  const envelope = document.getElementById('envelope');
+  const envScreen = document.getElementById('envelope-screen');
+  envelope.addEventListener('click', () => {
+    envelope.classList.add('open');
+    setTimeout(()=> envScreen.classList.add('hidden'), 650);
+  });
+
+  const allPages = Array.from(document.querySelectorAll('.page'));
+  const secretPage = document.getElementById('secretPage');
+  const pages = allPages.filter(p => p !== secretPage);
+  const dotsWrap = document.getElementById('dots');
+  let current = 0;
+  let onSecret = false;
+
+  pages.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(d);
+  });
+  const dots = Array.from(dotsWrap.children);
+
+  // typewriter effect on the active page's headline
+  function typeHeadline(page){
+    const h = page.querySelector('.headline');
+    if(!h || h.dataset.typed) { return; }
+    const original = h.innerHTML;
+    h.dataset.full = original;
+    h.dataset.typed = 'pending';
+    h.innerHTML = '';
+    h.classList.add('typing');
+
+    // build a flat list of {char, tag-aware} using a temp element to walk nodes
+    const temp = document.createElement('span');
+    temp.innerHTML = original;
+    const frag = [];
+    (function walk(node, emTag){
+      node.childNodes.forEach(n=>{
+        if(n.nodeType === 3){
+          n.textContent.split('').forEach(ch => frag.push({ch, em:emTag}));
+        } else if(n.nodeType === 1){
+          walk(n, true);
+        }
+      });
+    })(temp, false);
+
+    let i = 0;
+    let openEm = false;
+    function step(){
+      if(i >= frag.length){
+        h.classList.remove('typing');
+        h.dataset.typed = 'done';
+        return;
+      }
+      const {ch, em} = frag[i];
+      if(em && !openEm){ h.innerHTML += '<em>'; openEm = true; }
+      if(!em && openEm){ h.innerHTML += '</em>'; openEm = false; }
+      h.innerHTML += ch;
+      if(em){ h.innerHTML += '</em>'; } // close+reopen pattern avoided below
+      i++;
+      setTimeout(step, 20);
+    }
+    // simpler approach: re-render substring each tick to keep tags valid
+    h.innerHTML = '';
+    let count = 0;
+    const plain = temp.textContent;
+    function renderPartial(n){
+      // re-walk original HTML and cut at n plain-text characters
+      let remaining = n;
+      function build(node){
+        let out = '';
+        node.childNodes.forEach(c=>{
+          if(remaining <= 0) return;
+          if(c.nodeType === 3){
+            const take = Math.min(remaining, c.textContent.length);
+            out += c.textContent.slice(0, take);
+            remaining -= take;
+          } else if(c.nodeType === 1){
+            out += '<' + c.tagName.toLowerCase() + '>' + build(c) + '</' + c.tagName.toLowerCase() + '>';
+          }
+        });
+        return out;
+      }
+      return build(temp);
+    }
+    function tick(){
+      count++;
+      h.innerHTML = renderPartial(count);
+      if(count < plain.length){
+        setTimeout(tick, 18);
+      } else {
+        h.classList.remove('typing');
+        h.dataset.typed = 'done';
+      }
+    }
+    tick();
+  }
+
+  function goTo(i){
+    if(i<0 || i>=pages.length) return;
+    pages[current].classList.remove('active');
+    if(current < dots.length) dots[current].classList.remove('active');
+    current = i;
+    pages[current].classList.add('active');
+    dots[current].classList.add('active');
+    document.getElementById('prevBtn').disabled = current===0;
+    document.getElementById('nextBtn').disabled = current===pages.length-1;
+    typeHeadline(pages[current]);
+  }
+  document.getElementById('prevBtn').addEventListener('click', ()=>{ if(onSecret) return; goTo(current-1); });
+  document.getElementById('nextBtn').addEventListener('click', ()=>{ if(onSecret) return; goTo(current+1); });
+  document.getElementById('prevBtn').disabled = true;
+  typeHeadline(pages[0]);
+
+  // secret page
+  const secretTrigger = document.getElementById('secretTrigger');
+  secretTrigger.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    pages[current].classList.remove('active');
+    secretPage.classList.add('active');
+    onSecret = true;
+    document.getElementById('prevBtn').disabled = false;
+    document.getElementById('nextBtn').disabled = true;
+    typeHeadline(secretPage);
+  });
+  document.getElementById('prevBtn').addEventListener('click', ()=>{
+    if(onSecret){
+      secretPage.classList.remove('active');
+      pages[current].classList.add('active');
+      onSecret = false;
+      document.getElementById('nextBtn').disabled = current===pages.length-1;
+      document.getElementById('prevBtn').disabled = current===0;
+    }
+  });
+
+  document.addEventListener('keydown', (e)=>{
+    if(onSecret) return;
+    if(e.key==='ArrowRight') goTo(current+1);
+    if(e.key==='ArrowLeft') goTo(current-1);
+  });
+
+  // swipe support
+  let touchX = null;
+  document.getElementById('book').addEventListener('touchstart', e=> touchX = e.touches[0].clientX);
+  document.getElementById('book').addEventListener('touchend', e=>{
+    if(touchX===null || onSecret) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if(dx < -40) goTo(current+1);
+    if(dx > 40) goTo(current-1);
+    touchX = null;
+  });
+
+  // gentle falling petals on tap
+  const petalChars = ['✦','♡','❀'];
+  function spawnPetal(x){
+    const p = document.createElement('div');
+    p.className = 'petal';
+    p.textContent = petalChars[Math.floor(Math.random()*petalChars.length)];
+    p.style.left = x + 'px';
+    p.style.setProperty('--drift', (Math.random()*60-30) + 'px');
+    p.style.animationDuration = (3 + Math.random()*1.5) + 's';
+    document.body.appendChild(p);
+    setTimeout(()=> p.remove(), 5000);
+  }
+  document.getElementById('book-wrap').addEventListener('click', (e)=>{
+    if(e.target.closest('.nav-btn') || e.target.closest('.dot') || e.target.closest('.secret-trigger')) return;
+    spawnPetal(e.clientX);
+  });
+</script>
+</body>
+</html>
